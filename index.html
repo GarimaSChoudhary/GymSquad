@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#E24B4A">
+<title>GymSquad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --red: #E24B4A; --red-light: #FCEBEB;
+  --green: #1D9E75; --green-light: #E1F5EE;
+  --amber: #BA7517; --amber-light: #FAEEDA;
+  --blue: #185FA5; --blue-light: #E6F1FB;
+  --bg: #F7F6F2; --card: #FFFFFF;
+  --text: #1a1a1a; --text2: #6b6a65; --text3: #a8a7a2;
+  --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111110; --card: #1c1c1a;
+    --text: #f0ede8; --text2: #9a9892; --text3: #5a5955;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --red-light: #2a1110; --green-light: #0a1f17;
+    --amber-light: #1f1608; --blue-light: #071525;
+  }
+}
+html, body { height: 100%; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+body { overflow-x: hidden; }
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+
+/* ── LOGIN ── */
+.login-wrap { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 32px 24px 48px; }
+.login-logo { font-size: 48px; text-align: center; margin-bottom: 8px; }
+.login-title { font-size: 26px; font-weight: 600; text-align: center; letter-spacing: -0.5px; }
+.login-sub { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 36px; }
+.login-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 20px; padding: 24px; }
+.login-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.login-input { width: 100%; padding: 12px 14px; border: 0.5px solid var(--border2); border-radius: 10px; font-size: 16px; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin-bottom: 16px; }
+.login-input:focus { outline: none; border-color: var(--red); background: var(--card); }
+.pin-row { display: flex; gap: 8px; margin-bottom: 24px; }
+.pin-box { flex: 1; padding: 14px 4px; border: 0.5px solid var(--border2); border-radius: 10px; font-size: 20px; font-family: 'DM Mono', monospace; font-weight: 500; text-align: center; background: var(--bg); color: var(--text); -webkit-text-security: disc; }
+.pin-box:focus { outline: none; border-color: var(--red); background: var(--card); }
+.login-btn { width: 100%; padding: 14px; background: var(--red); border: none; border-radius: 12px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.15s; }
+.login-btn:active { opacity: 0.85; }
+.login-err { font-size: 13px; color: var(--red); text-align: center; margin-top: 12px; min-height: 20px; }
+.login-switch { font-size: 13px; color: var(--text2); text-align: center; margin-top: 20px; cursor: pointer; }
+.login-switch span { color: var(--red); font-weight: 500; }
+.avatar-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.avatar-opt { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--border2); font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+.avatar-opt.selected { border-color: var(--red); background: var(--red-light); }
+
+/* ── APP SHELL ── */
+.app-wrap { display: flex; flex-direction: column; min-height: 100vh; }
+.top-bar { position: sticky; top: 0; z-index: 100; background: var(--card); border-bottom: 0.5px solid var(--border); padding: 12px 16px 10px; }
+.top-bar-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.app-title { font-size: 20px; font-weight: 600; }
+.user-pill { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 0.5px solid var(--border2); padding: 5px 12px 5px 6px; border-radius: 20px; cursor: pointer; }
+.user-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--red-light); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.user-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.day-tabs { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.day-tabs::-webkit-scrollbar { display: none; }
+.day-tab { flex-shrink: 0; padding: 6px 13px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.15s; }
+.day-tab.active { background: var(--red); color: white; border-color: var(--red); }
+.day-tab.rest { color: var(--text3); }
+.day-tab.saved { border-color: var(--green); color: var(--green); }
+
+/* ── PAGES ── */
+.page { display: none; padding-bottom: 80px; }
+.page.active { display: block; }
+.nav-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: var(--card); border-top: 0.5px solid var(--border); display: flex; padding: 8px 0 20px; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 0; }
+.nav-icon { font-size: 20px; }
+.nav-label { font-size: 10px; color: var(--text3); font-weight: 500; }
+.nav-item.active .nav-label { color: var(--red); }
+
+/* ── WORKOUT PAGE ── */
+.progress-wrap { padding: 12px 16px 0; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+.progress-bar { height: 4px; background: var(--border); border-radius: 2px; }
+.progress-fill { height: 100%; background: var(--red); border-radius: 2px; transition: width 0.4s ease; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px 16px; }
+.stat-box { background: var(--card); border: 0.5px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.stat-val { font-size: 18px; font-weight: 600; }
+.stat-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+.section-note { font-size: 12px; color: var(--text2); padding: 4px 16px 4px; }
+.exercise-list { padding: 8px 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+.exercise-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 14px; overflow: hidden; }
+.exercise-card.all-done { border-color: var(--green); }
+.exercise-header { display: flex; align-items: center; gap: 10px; padding: 11px 12px; cursor: pointer; user-select: none; position: relative; }
+.ex-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--red-light); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.ex-info { flex: 1; min-width: 0; }
+.ex-name { font-size: 14px; font-weight: 500; line-height: 1.3; }
+.ex-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+.ex-sub { font-size: 11px; color: var(--text3); }
+.pb-badge { background: var(--amber-light); color: var(--amber); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+.done-badge { background: var(--green-light); color: var(--green); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+.expand-btn { width: 30px; height: 30px; border-radius: 8px; background: var(--red); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.2s; }
+.expand-btn.open { transform: rotate(180deg); }
+.sets-panel { border-top: 0.5px solid var(--border); padding: 10px 12px 12px; display: none; }
+.sets-panel.open { display: block; animation: slideDown 0.18s ease; }
+@keyframes slideDown { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+.prev-hint { font-size: 10px; color: var(--text3); padding: 0 2px 8px; font-family: 'DM Mono', monospace; }
+.prev-hint strong { color: var(--text2); }
+.sets-header { display: grid; grid-template-columns: 26px 1fr 1fr 44px 30px 22px; gap: 5px; font-size: 11px; color: var(--text3); text-align: center; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+.sets-header span:first-child { text-align: left; }
+.set-row { display: grid; grid-template-columns: 26px 1fr 1fr 44px 30px 22px; gap: 5px; align-items: center; margin-bottom: 6px; }
+.set-num { font-size: 13px; font-weight: 500; color: var(--text3); text-align: center; font-family: 'DM Mono', monospace; }
+.set-input { width: 100%; padding: 7px 4px; border: 0.5px solid var(--border2); border-radius: 8px; font-size: 14px; font-family: 'DM Mono', monospace; font-weight: 500; text-align: center; background: var(--bg); color: var(--text); transition: border-color 0.15s; }
+.set-input:focus { outline: none; border-color: var(--red); background: var(--card); }
+.set-input.pb-highlight { border-color: var(--amber) !important; background: var(--amber-light) !important; }
+.set-orm { font-size: 12px; text-align: center; color: var(--text3); font-family: 'DM Mono', monospace; }
+.set-done { width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid var(--border2); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+.set-done.checked { background: var(--green); border-color: var(--green); }
+.set-done svg { opacity: 0; transition: opacity 0.15s; }
+.set-done.checked svg { opacity: 1; }
+.del-set-btn { width: 22px; height: 22px; border-radius: 6px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text3); flex-shrink: 0; padding: 0; transition: color 0.15s; }
+.del-set-btn:active { color: var(--red); }
+.add-set-btn { width: 100%; padding: 7px; border: 0.5px dashed var(--border2); border-radius: 8px; background: transparent; font-size: 12px; color: var(--text3); cursor: pointer; margin-top: 4px; font-family: 'DM Sans', sans-serif; }
+.complete-btn-wrap { position: fixed; bottom: 68px; left: 0; right: 0; padding: 10px 16px 6px; background: linear-gradient(to top, var(--bg) 60%, transparent); }
+.complete-btn { width: 100%; padding: 15px; background: var(--red); border: none; border-radius: 14px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.15s, transform 0.1s; }
+.complete-btn:active { opacity: 0.85; transform: scale(0.99); }
+.complete-btn:disabled { opacity: 0.5; }
+.rest-day { text-align: center; padding: 60px 20px; color: var(--text2); }
+.rest-emoji { font-size: 48px; margin-bottom: 12px; }
+
+/* ── FRIENDS PAGE ── */
+.page-header { padding: 20px 16px 10px; }
+.page-header h2 { font-size: 20px; font-weight: 600; }
+.page-header p { font-size: 13px; color: var(--text2); margin-top: 3px; }
+.friend-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 14px; padding: 14px; margin: 0 12px 8px; }
+.friend-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.friend-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--red-light); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.friend-info { flex: 1; }
+.friend-name { font-size: 15px; font-weight: 600; }
+.friend-streak { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.friend-last { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.friend-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.friend-stat { background: var(--bg); border-radius: 8px; padding: 8px 6px; text-align: center; }
+.friend-stat-val { font-size: 15px; font-weight: 600; }
+.friend-stat-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px; }
+.friend-pbs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.friend-pb-tag { font-size: 10px; background: var(--amber-light); color: var(--amber); padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.you-badge { font-size: 10px; background: var(--red-light); color: var(--red); padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+/* ── PB PAGE ── */
+.pb-section { margin: 0 12px 16px; }
+.pb-section-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; padding: 0 4px 8px; }
+.pb-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+.pb-trophy { font-size: 22px; flex-shrink: 0; }
+.pb-info { flex: 1; min-width: 0; }
+.pb-name { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pb-date { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.pb-nums { text-align: right; flex-shrink: 0; }
+.pb-weight { font-size: 16px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.pb-reps { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; }
+.pb-orm { font-size: 11px; color: var(--amber); font-weight: 500; font-family: 'DM Mono', monospace; }
+
+/* ── MISC ── */
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #1a1a1a; color: white; padding: 10px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.25s; z-index: 999; white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 900; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet { background: var(--card); border-radius: 20px 20px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 480px; transform: translateY(100%); transition: transform 0.25s ease; }
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-title { font-size: 17px; font-weight: 600; text-align: center; margin-bottom: 6px; }
+.modal-sub { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 20px; }
+.modal-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-bottom: 8px; }
+.modal-btn.danger { background: var(--red); color: white; }
+.modal-btn.cancel { background: var(--bg); color: var(--text2); border: 0.5px solid var(--border2); }
+.empty-state { text-align: center; padding: 50px 20px; color: var(--text3); }
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+.empty-state p { font-size: 13px; line-height: 1.6; }
+.spinner { display: flex; align-items: center; justify-content: center; padding: 40px; }
+.spin { width: 28px; height: 28px; border: 2.5px solid var(--border2); border-top-color: var(--red); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; gap: 14px; }
+.loading-screen.hidden { display: none; }
+.loading-screen .spin { width: 36px; height: 36px; }
+.loading-screen p { font-size: 14px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div style="font-size:40px">🏋️</div>
+  <div class="spin"></div>
+  <p id="loading-msg">Loading GymSquad…</p>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div class="screen" id="screen-login">
+  <div class="login-wrap">
+    <div class="login-logo">🏋️</div>
+    <div class="login-title">GymSquad</div>
+    <div class="login-sub" id="login-sub">Track workouts with your crew</div>
+    <div class="login-card">
+      <div id="login-form">
+        <div class="login-label">Your name</div>
+        <input class="login-input" id="input-name" placeholder="e.g. Alex" maxlength="20" autocomplete="off">
+        <div class="login-label">4-digit PIN</div>
+        <div class="pin-row">
+          <input class="pin-box" id="pin1" type="number" inputmode="numeric" maxlength="1" min="0" max="9">
+          <input class="pin-box" id="pin2" type="number" inputmode="numeric" maxlength="1" min="0" max="9">
+          <input class="pin-box" id="pin3" type="number" inputmode="numeric" maxlength="1" min="0" max="9">
+          <input class="pin-box" id="pin4" type="number" inputmode="numeric" maxlength="1" min="0" max="9">
+        </div>
+        <div id="register-extra" style="display:none">
+          <div class="login-label">Pick an avatar</div>
+          <div class="avatar-row" id="avatar-row"></div>
+        </div>
+        <button class="login-btn" id="login-btn" onclick="doLogin()">Log In</button>
+        <div class="login-err" id="login-err"></div>
+      </div>
+    </div>
+    <div class="login-switch" id="login-switch" onclick="toggleMode()">
+      New here? <span>Create account</span>
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div class="screen" id="screen-app">
+  <div class="top-bar">
+    <div class="top-bar-row">
+      <div class="app-title">GymSquad</div>
+      <div class="user-pill" onclick="logout()">
+        <div class="user-avatar" id="top-avatar">😀</div>
+        <div class="user-name" id="top-name">You</div>
+      </div>
+    </div>
+    <div class="day-tabs" id="day-tabs"></div>
+  </div>
+
+  <div class="page active" id="page-workout">
+    <div id="main-content"></div>
+    <div class="complete-btn-wrap" id="complete-wrap" style="display:none">
+      <button class="complete-btn" id="complete-btn" onclick="completeDay()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Save &amp; Complete Day
+      </button>
+    </div>
+  </div>
+
+  <div class="page" id="page-friends">
+    <div class="page-header"><h2>Squad</h2><p>See what your crew is lifting</p></div>
+    <div id="friends-list"></div>
+  </div>
+
+  <div class="page" id="page-pbs">
+    <div class="page-header"><h2>My Records</h2><p>All-time personal bests</p></div>
+    <div id="pb-list"></div>
+  </div>
+
+  <nav class="nav-bar">
+    <div class="nav-item active" id="nav-workout" onclick="showPage('page-workout')"><span class="nav-icon">💪</span><span class="nav-label">Workout</span></div>
+    <div class="nav-item" id="nav-friends" onclick="showPage('page-friends')"><span class="nav-icon">👥</span><span class="nav-label">Squad</span></div>
+    <div class="nav-item" id="nav-pbs" onclick="showPage('page-pbs')"><span class="nav-icon">🏆</span><span class="nav-label">Records</span></div>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- LOGOUT MODAL -->
+<div class="modal-overlay" id="logout-modal" onclick="closeModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">Log out?</div>
+    <div class="modal-sub" id="logout-modal-sub">You'll need your name and PIN to log back in.</div>
+    <button class="modal-btn danger" onclick="doLogout()">Log Out</button>
+    <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ─── STORAGE BACKEND ───────────────────────────────────────────────────────
+// Everything lives in localStorage.
+// "Shared" data (profiles, history, PBs visible to squadmates) uses prefix "gs_shared:"
+// Private session data (in-progress sets) uses prefix "gs_user:{slug}:"
+// All accounts on the same device/browser automatically see each other in Squad.
+
+function lsGet(key) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+}
+function lsKeys(prefix) {
+  try {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(prefix)) keys.push(k);
+    }
+    return keys;
+  } catch(e) { return []; }
+}
+
+async function cloudGet(key, shared=false) {
+  const prefix = shared ? "gs_shared:" : `gs_user:${currentUser?.slug}:`;
+  return lsGet(prefix + key);
+}
+async function cloudSet(key, value, shared=false) {
+  const prefix = shared ? "gs_shared:" : `gs_user:${currentUser?.slug}:`;
+  lsSet(prefix + key, value);
+}
+async function cloudList(prefix, shared=false) {
+  const nsPrefix = shared ? "gs_shared:" : `gs_user:${currentUser?.slug}:`;
+  const full = nsPrefix + prefix;
+  const keys = lsKeys(full).map(k => k.slice(nsPrefix.length));
+  return { keys };
+}
+
+// ─── WORKOUT DATA ──────────────────────────────────────────────────────────
+const WORKOUTS = {
+  Mon:{name:"Shoulder",note:"Focus on muscle contraction, not just moving weight.",exercises:[
+    {name:"Seated dumbbell shoulder press",icon:"🏋️"},{name:"Shoulder closed grip dumbbell press",icon:"🏋️"},
+    {name:"Smith machine shoulder press",icon:"🏋️"},{name:"Dumbbell side lateral raises",icon:"💪"},
+    {name:"Dumbbell shrugs",icon:"🤷"},{name:"Sides",icon:"💪"}
+  ]},
+  Tue:{name:"Chest",note:"Focus on muscle contraction, not just moving weight.",exercises:[
+    {name:"High pulley cable cross over",icon:"🏋️"},{name:"Dumbbell press",icon:"🏋️"},
+    {name:"Incline smith machine press",icon:"🏋️"},{name:"Incline dumbbell squeeze press",icon:"🏋️"},
+    {name:"Pec dec fly",icon:"🦋"},{name:"Abs",icon:"💪"}
+  ]},
+  Wed:{name:"Arms",note:"Focus on muscle contraction, not just moving weight.",exercises:[
+    {name:"Incline dumbbell curls",icon:"💪"},{name:"Alternative dumbbell hammer curls",icon:"🔨"},
+    {name:"Straight barbell curls",icon:"🏋️"},{name:"Straight bar cable pushdown",icon:"💪"},
+    {name:"Reverse grip triceps pushdown",icon:"💪"}
+  ]},
+  Thu:{name:"Rest Day",note:"Recovery is part of the program.",exercises:[]},
+  Fri:{name:"Leg (Hamstring)",note:"Focus on muscle contraction, not just moving weight.",exercises:[
+    {name:"Lying down machine hamstring curls",icon:"🦵"},{name:"Stiff leg dead lift",icon:"🏋️"},
+    {name:"Sumo dead lift (hamstring & glutes)",icon:"🏋️"},{name:"Leg press",icon:"💪"},
+    {name:"Seated machine calf raises",icon:"🦵"},{name:"Leg press machine calf press",icon:"🦵"},
+    {name:"Hip thrusters",icon:"🍑"},{name:"Butkicks",icon:"🏃"}
+  ]},
+  Sat:{name:"Back",note:"Focus on muscle contraction, not just moving weight.",exercises:[
+    {name:"Reverse grip lat pulldown",icon:"🔙"},{name:"Lat pulldown",icon:"🔙"},
+    {name:"Seated row",icon:"🚣"},{name:"Barbell dead lift",icon:"🏋️"},
+    {name:"V bar pulldown",icon:"🔙"},{name:"Abs",icon:"💪"}
+  ]},
+  Sun:{name:"Leg (Quads)",note:"Focus on muscle contraction, not just moving weight.",exercises:[
+    {name:"Leg extensions",icon:"🦵"},{name:"Smith machine squats normal stance",icon:"🏋️"},
+    {name:"Dumbbell goblet squats wide stance",icon:"🏋️"},{name:"Dumbbell walking lunges",icon:"🚶"},
+    {name:"Leg press machine calf press",icon:"🦵"},{name:"Standing machine calf raises",icon:"🦵"}
+  ]}
+};
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const DAY_MAP={0:"Sun",1:"Mon",2:"Tue",3:"Wed",4:"Thu",5:"Fri",6:"Sat"};
+const AVATARS=["😀","😎","🤩","🥷","👊","🦁","🐯","🔥","⚡","🎯","🏔️","💎"];
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let currentUser = null; // { name, pin, avatar, slug }
+let currentDay = DAY_MAP[new Date().getDay()];
+let setsData = {}, completedSets = {}, expandedCards = {};
+let personalBests = {};
+let history = [];
+let isRegisterMode = false;
+let selectedAvatar = AVATARS[0];
+let isSaving = false;
+
+function userSlug(name) { return name.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,20); }
+function getKey(d,i,j){ return `${d}_${i}_${j}`; }
+function calcORM(r,w){ const rv=parseFloat(r),wv=parseFloat(w); if(!rv||!wv||rv<=0||wv<=0)return null; return Math.round(wv*(1+rv/30)); }
+function fmtDate(iso){ return new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
+function fmtDateLong(iso){ return new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+async function init() {
+  showLoading("Loading GymSquad…");
+  setupPinInputs();
+  setupAvatars();
+
+  // Restore session from localStorage directly (cloudGet needs currentUser set first)
+  try {
+    const sess = lsGet("gs_session");
+    if (sess) {
+      const profile = lsGet(`gs_shared:users:${sess.slug}`);
+      if (profile && profile.pin === sess.pin) {
+        currentUser = { name: profile.name, pin: profile.pin, avatar: profile.avatar, slug: sess.slug };
+        await loadUserData();
+        hideLoading();
+        showApp();
+        return;
+      }
+    }
+  } catch(e){}
+
+  hideLoading();
+  showScreen('screen-login');
+}
+
+function showLoading(msg) {
+  document.getElementById("loading-msg").textContent = msg;
+  document.getElementById("loading-screen").classList.remove("hidden");
+}
+function hideLoading() { document.getElementById("loading-screen").classList.add("hidden"); }
+
+// ─── LOGIN ─────────────────────────────────────────────────────────────────
+function setupAvatars() {
+  const row = document.getElementById("avatar-row");
+  row.innerHTML = AVATARS.map((a,i)=>`<div class="avatar-opt${i===0?" selected":""}" onclick="selectAvatar('${a}',this)">${a}</div>`).join("");
+}
+function selectAvatar(a, el) {
+  selectedAvatar = a;
+  document.querySelectorAll(".avatar-opt").forEach(e=>e.classList.remove("selected"));
+  el.classList.add("selected");
+}
+function toggleMode() {
+  isRegisterMode = !isRegisterMode;
+  document.getElementById("register-extra").style.display = isRegisterMode?"block":"none";
+  document.getElementById("login-btn").textContent = isRegisterMode?"Create Account":"Log In";
+  document.getElementById("login-switch").innerHTML = isRegisterMode?'Already have an account? <span>Log in</span>':'New here? <span>Create account</span>';
+  document.getElementById("login-sub").textContent = isRegisterMode?"Join your squad":"Track workouts with your crew";
+  document.getElementById("login-err").textContent="";
+}
+function setupPinInputs() {
+  ["pin1","pin2","pin3","pin4"].forEach((id,i,arr)=>{
+    const el=document.getElementById(id);
+    el.addEventListener("input",e=>{
+      if(el.value.length>1)el.value=el.value.slice(-1);
+      if(el.value&&i<3)document.getElementById(arr[i+1]).focus();
+    });
+    el.addEventListener("keydown",e=>{
+      if(e.key==="Backspace"&&!el.value&&i>0)document.getElementById(arr[i-1]).focus();
+    });
+  });
+}
+function getPin() { return ["pin1","pin2","pin3","pin4"].map(id=>document.getElementById(id).value).join(""); }
+
+async function doLogin() {
+  const name = document.getElementById("input-name").value.trim();
+  const pin = getPin();
+  const errEl = document.getElementById("login-err");
+  errEl.textContent="";
+  if(!name){errEl.textContent="Please enter your name.";return;}
+  if(pin.length!==4){errEl.textContent="Enter a 4-digit PIN.";return;}
+
+  const slug = userSlug(name);
+  showLoading(isRegisterMode?"Creating account…":"Logging in…");
+
+  // Read directly from localStorage so we don't need currentUser set yet
+  const existing = lsGet(`gs_shared:users:${slug}`);
+
+  if (isRegisterMode) {
+    if (existing) { hideLoading(); errEl.textContent="That name is taken. Try a different name, or log in."; return; }
+    const profile = { name, pin, avatar: selectedAvatar, slug, createdAt: new Date().toISOString() };
+    lsSet(`gs_shared:users:${slug}`, profile);
+    currentUser = { name, pin, avatar: selectedAvatar, slug };
+    // Init empty shared data for this user
+    lsSet(`gs_shared:pbs:${slug}`, {});
+    lsSet(`gs_shared:history:${slug}`, []);
+  } else {
+    if (!existing) { hideLoading(); errEl.textContent="Account not found. Create one first."; return; }
+    if (existing.pin !== pin) { hideLoading(); errEl.textContent="Wrong PIN. Try again."; return; }
+    currentUser = { name: existing.name, pin: existing.pin, avatar: existing.avatar, slug };
+  }
+
+  lsSet("gs_session", { slug, pin });
+  await loadUserData();
+  hideLoading();
+  showApp();
+}
+
+function logout() {
+  document.getElementById("logout-modal-sub").textContent = `Logged in as ${currentUser?.name}. You'll need your name and PIN to log back in.`;
+  document.getElementById("logout-modal").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("logout-modal").classList.remove("open");
+}
+function doLogout() {
+  closeModal();
+  lsSet("gs_session", null);
+  localStorage.removeItem("gs_session");
+  currentUser = null; setsData={}; completedSets={}; expandedCards={}; personalBests={}; history=[];
+  document.getElementById("input-name").value="";
+  ["pin1","pin2","pin3","pin4"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("login-err").textContent="";
+  if(isRegisterMode) toggleMode();
+  showScreen("screen-login");
+}
+
+// ─── LOAD / SAVE USER DATA ─────────────────────────────────────────────────
+async function loadUserData() {
+  const [sd, pb, hist] = await Promise.all([
+    cloudGet(`session`, false),          // private: in-progress sets
+    cloudGet(`pbs:${currentUser.slug}`, true),   // shared: personal bests
+    cloudGet(`history:${currentUser.slug}`, true) // shared: workout history
+  ]);
+  setsData = sd?.setsData || {};
+  completedSets = sd?.completedSets || {};
+  expandedCards = sd?.expandedCards || {};
+  personalBests = pb || {};
+  history = hist || [];
+}
+
+async function saveUserData() {
+  await Promise.all([
+    cloudSet(`session`, { setsData, completedSets, expandedCards }, false),
+    cloudSet(`pbs:${currentUser.slug}`, personalBests, true),
+    cloudSet(`history:${currentUser.slug}`, history, true)
+  ]);
+}
+
+// ─── APP ───────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function showApp() {
+  showScreen("screen-app");
+  document.getElementById("top-avatar").textContent = currentUser.avatar;
+  document.getElementById("top-name").textContent = currentUser.name;
+  renderDayTabs();
+  renderWorkout();
+}
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.getElementById("nav-"+id.replace("page-",""))?.classList.add("active");
+  if(id==="page-friends") renderFriends();
+  if(id==="page-pbs") renderPBs();
+  window.scrollTo(0,0);
+}
+
+// ─── DAY TABS ──────────────────────────────────────────────────────────────
+function renderDayTabs() {
+  const today = new Date().toDateString();
+  document.getElementById("day-tabs").innerHTML = DAYS.map(d=>{
+    const saved = history.some(h=>h.day===d && new Date(h.date).toDateString()===today);
+    return`<div class="day-tab${d===currentDay?" active":""}${WORKOUTS[d].exercises.length===0?" rest":""}${saved&&d!==currentDay?" saved":""}" onclick="switchDay('${d}')">${d}${saved&&d!==currentDay?" ✓":""}</div>`;
+  }).join("");
+}
+function switchDay(day){currentDay=day;renderDayTabs();renderWorkout();}
+
+// ─── WORKOUT RENDER ────────────────────────────────────────────────────────
+function initDay(day){
+  if(!setsData[day])setsData[day]={};
+  WORKOUTS[day].exercises.forEach((_,i)=>{
+    if(!setsData[day][i])setsData[day][i]=[{reps:"",weight:""},{reps:"",weight:""},{reps:"",weight:""}];
+  });
+}
+function getDayStats(day){
+  let t=0,d=0,v=0;
+  (WORKOUTS[day].exercises||[]).forEach((_,i)=>{
+    (setsData[day]?.[i]||[]).forEach((s,j)=>{
+      t++;if(completedSets[getKey(day,i,j)]){d++;v+=(parseFloat(s.reps)||0)*(parseFloat(s.weight)||0);}
+    });
+  });
+  return{total:t,done:d,vol:Math.round(v)};
+}
+function renderWorkout(){
+  const w=WORKOUTS[currentDay]; initDay(currentDay);
+  const stats=getDayStats(currentDay);
+  const pct=stats.total>0?Math.round(stats.done/stats.total*100):0;
+  let html=`<div class="progress-wrap">
+    <div class="progress-label"><span>${w.name}</span><span id="pct-label">${pct}% done</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:${pct}%"></div></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="stat-done">${stats.done}</div><div class="stat-lbl">Sets Done</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-total">${stats.total}</div><div class="stat-lbl">Total Sets</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-vol">${stats.vol}</div><div class="stat-lbl">Vol (lbs)</div></div>
+  </div>`;
+  if(!w.exercises.length){
+    html+=`<div class="rest-day"><div class="rest-emoji">😴</div><h2>${w.name}</h2><p style="color:var(--text2);font-size:14px;">${w.note}</p></div>`;
+    document.getElementById("complete-wrap").style.display="none";
+  } else {
+    document.getElementById("complete-wrap").style.display="block";
+    html+=`<div class="section-note">${w.note}</div><div class="exercise-list">`;
+    w.exercises.forEach((ex,i)=>{html+=renderExCard(ex,i);});
+    html+=`</div>`;
+  }
+  document.getElementById("main-content").innerHTML=html;
+}
+
+function getLastHistoryFor(day,exIdx){
+  const entries=history.filter(h=>h.day===day).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!entries.length)return null;
+  const last=entries[0];
+  const sets=(last.setsData?.[exIdx]||[]).filter((_,j)=>last.completedSets?.[getKey(day,exIdx,j)]);
+  if(!sets.length)return null;
+  const best=sets.reduce((b,s)=>(parseFloat(s.weight)||0)>=(parseFloat(b.weight)||0)?s:b,sets[0]);
+  return{reps:best.reps,weight:best.weight,date:last.date};
+}
+
+function renderExCard(ex,i){
+  const sets=setsData[currentDay][i]||[];
+  const doneCount=sets.filter((_,j)=>completedSets[getKey(currentDay,i,j)]).length;
+  const allDone=doneCount===sets.length&&sets.length>0;
+  const isOpen=expandedCards[`${currentDay}_${i}`];
+  const pb=personalBests[ex.name];
+  const prev=getLastHistoryFor(currentDay,i);
+  const pbHtml=pb?`<span class="pb-badge">PB: ${pb.weight}lbs×${pb.reps}</span>`:"";
+  return`<div class="exercise-card${allDone?" all-done":""}" id="card-${i}">
+    <div class="exercise-header" onclick="toggleCard(${i})">
+      <div class="ex-icon">${ex.icon}</div>
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-meta"><span class="ex-sub">${doneCount>0?`${doneCount}/${sets.length} sets`:`${sets.length} sets`}</span>${pbHtml}</div>
+      </div>
+      ${allDone?'<div class="done-badge">Done ✓</div>':''}
+      <div class="expand-btn${isOpen?" open":""}" id="btn-${i}">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="sets-panel${isOpen?" open":""}" id="panel-${i}">
+      ${prev?`<div class="prev-hint">Last time: <strong>${prev.reps} reps @ ${prev.weight} lbs</strong> (${fmtDate(prev.date)})</div>`:""}
+      <div class="sets-header"><span>Set</span><span>Reps</span><span>Weight</span><span>Est.1RM</span><span></span><span></span></div>
+      ${sets.map((s,j)=>renderSetRow(i,j,s)).join("")}
+      <button class="add-set-btn" onclick="addSet(${i})">+ Add set</button>
+    </div>
+  </div>`;
+}
+
+function renderSetRow(i,j,s){
+  const key=getKey(currentDay,i,j);
+  const done=completedSets[key];
+  const orm=calcORM(s.reps,s.weight);
+  const pb=personalBests[WORKOUTS[currentDay].exercises[i]?.name];
+  const isBeat=pb&&orm&&orm>pb.orm;
+  return`<div class="set-row" id="setrow-${i}-${j}">
+    <span class="set-num">${j+1}</span>
+    <input class="set-input${isBeat?" pb-highlight":""}" type="number" inputmode="decimal" placeholder="—" value="${s.reps}" onchange="updateSet(${i},${j},'reps',this.value)" min="0" step="1">
+    <input class="set-input${isBeat?" pb-highlight":""}" type="number" inputmode="decimal" placeholder="—" value="${s.weight}" onchange="updateSet(${i},${j},'weight',this.value)" min="0" step="0.5">
+    <span class="set-orm">${orm||"—"}</span>
+    <button class="set-done${done?" checked":""}" onclick="toggleSetDone(${i},${j})">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l4 4 5-6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="del-set-btn" onclick="deleteSet(${i},${j})" title="Delete set">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M5 4V2.5h4V4M5.5 6.5v4M8.5 6.5v4M3 4l.7 7.5h6.6L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>`;
+}
+
+function toggleCard(i){
+  const k=`${currentDay}_${i}`;
+  expandedCards[k]=!expandedCards[k];
+  document.getElementById(`panel-${i}`)?.classList.toggle("open");
+  document.getElementById(`btn-${i}`)?.classList.toggle("open");
+  debounceSave();
+}
+function updateSet(i,j,field,val){
+  if(!setsData[currentDay]?.[i])return;
+  setsData[currentDay][i][j][field]=val;
+  const s=setsData[currentDay][i][j];
+  const ormEl=document.querySelector(`#setrow-${i}-${j} .set-orm`);
+  if(ormEl)ormEl.textContent=calcORM(s.reps,s.weight)||"—";
+  updateStats();debounceSave();
+}
+function toggleSetDone(i,j){
+  const key=getKey(currentDay,i,j);
+  completedSets[key]=!completedSets[key];
+  document.querySelector(`#setrow-${i}-${j} .set-done`)?.classList.toggle("checked");
+  updateCardState(i);updateStats();debounceSave();
+}
+function updateCardState(i){
+  const sets=setsData[currentDay][i]||[];
+  const done=sets.filter((_,j)=>completedSets[getKey(currentDay,i,j)]).length;
+  const allDone=done===sets.length&&sets.length>0;
+  const card=document.getElementById(`card-${i}`);
+  if(!card)return;
+  card.classList.toggle("all-done",allDone);
+  const sub=card.querySelector(".ex-sub");
+  if(sub)sub.textContent=done>0?`${done}/${sets.length} sets`:`${sets.length} sets`;
+  let badge=card.querySelector(".done-badge");
+  if(allDone&&!badge){const b=document.createElement("div");b.className="done-badge";b.textContent="Done ✓";card.querySelector(".exercise-header").insertBefore(b,card.querySelector(".expand-btn"));}
+  else if(!allDone&&badge)badge.remove();
+}
+function updateStats(){
+  const stats=getDayStats(currentDay);
+  const pct=stats.total>0?Math.round(stats.done/stats.total*100):0;
+  const f=document.getElementById("progress-fill");if(f)f.style.width=pct+"%";
+  const pl=document.getElementById("pct-label");if(pl)pl.textContent=pct+"% done";
+  const sd=document.getElementById("stat-done");if(sd)sd.textContent=stats.done;
+  const sv=document.getElementById("stat-vol");if(sv)sv.textContent=stats.vol;
+}
+function addSet(i){
+  if(!setsData[currentDay]?.[i])return;
+  setsData[currentDay][i].push({reps:"",weight:""});
+  const panel=document.getElementById(`panel-${i}`);
+  if(panel){
+    const j=setsData[currentDay][i].length-1;
+    const div=document.createElement("div");
+    div.innerHTML=renderSetRow(i,j,setsData[currentDay][i][j]);
+    panel.insertBefore(div.firstChild,panel.querySelector(".add-set-btn"));
+  }
+  const st=document.getElementById("stat-total");if(st)st.textContent=getDayStats(currentDay).total;
+  debounceSave();
+}
+
+function deleteSet(i,j){
+  const sets=setsData[currentDay]?.[i];
+  if(!sets||sets.length<=1)return; // keep at least 1 set
+  // Remove the set and clean up its completedSets key
+  sets.splice(j,1);
+  // Re-key completedSets for this exercise (j+1, j+2... all shift down by 1)
+  const newCompleted={};
+  Object.entries(completedSets).forEach(([k,v])=>{
+    const prefix=`${currentDay}_${i}_`;
+    if(k.startsWith(prefix)){
+      const idx=parseInt(k.slice(prefix.length));
+      if(idx===j)return; // deleted
+      const newIdx=idx>j?idx-1:idx;
+      newCompleted[`${currentDay}_${i}_${newIdx}`]=v;
+    } else {
+      newCompleted[k]=v;
+    }
+  });
+  Object.keys(completedSets).forEach(k=>delete completedSets[k]);
+  Object.assign(completedSets,newCompleted);
+  // Re-render just this card's panel
+  const panel=document.getElementById(`panel-${i}`);
+  if(panel){
+    const addBtn=panel.querySelector(".add-set-btn");
+    const rows=panel.querySelectorAll(".set-row");
+    rows.forEach(r=>r.remove());
+    sets.forEach((s,jj)=>{
+      const div=document.createElement("div");
+      div.innerHTML=renderSetRow(i,jj,s);
+      panel.insertBefore(div.firstChild,addBtn);
+    });
+  }
+  updateCardState(i);updateStats();debounceSave();
+}
+// ─── DEBOUNCED SAVE ─────────────────────────────────────────────────────────
+function debounceSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>saveUserData(),1500);
+}
+
+// ─── COMPLETE DAY ──────────────────────────────────────────────────────────
+function checkPBs(day){
+  const newPBs=[];
+  WORKOUTS[day].exercises.forEach((ex,i)=>{
+    (setsData[day]?.[i]||[]).forEach((s,j)=>{
+      if(!completedSets[getKey(day,i,j)])return;
+      const w=parseFloat(s.weight),r=parseFloat(s.reps);
+      if(!w||!r)return;
+      const orm=calcORM(r,w);
+      if(!personalBests[ex.name]||orm>personalBests[ex.name].orm){
+        personalBests[ex.name]={weight:w,reps:r,orm,date:new Date().toISOString()};
+        newPBs.push(ex.name);
+      }
+    });
+  });
+  return newPBs;
+}
+
+async function completeDay(){
+  if(isSaving)return;
+  const w=WORKOUTS[currentDay];
+  if(!w.exercises.length)return;
+  isSaving=true;
+  const btn=document.getElementById("complete-btn");
+  btn.disabled=true; btn.textContent="Saving…";
+  const newPBs=checkPBs(currentDay);
+  const stats=getDayStats(currentDay);
+  history.unshift({id:Date.now(),day:currentDay,date:new Date().toISOString(),muscle:w.name,
+    setsData:JSON.parse(JSON.stringify(setsData[currentDay]||{})),
+    completedSets:Object.fromEntries(Object.entries(completedSets).filter(([k])=>k.startsWith(currentDay+"_"))),
+    stats,newPBs});
+  await saveUserData();
+  renderDayTabs();
+  btn.disabled=false;
+  btn.innerHTML=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Save &amp; Complete Day`;
+  isSaving=false;
+  if(newPBs.length) showToast(`🏆 New PB! ${newPBs.slice(0,2).map(n=>n.split(" ").slice(0,3).join(" ")).join(", ")}${newPBs.length>2?` +${newPBs.length-2} more`:""}`);
+  else showToast(`✓ ${w.name} saved! ${stats.done} sets · ${stats.vol} lbs`);
+}
+
+// ─── FRIENDS / SQUAD ───────────────────────────────────────────────────────
+async function renderFriends(){
+  document.getElementById("friends-list").innerHTML=`<div class="spinner"><div class="spin"></div></div>`;
+  try {
+    // Find all user profiles stored in shared namespace
+    const userKeys = lsKeys("gs_shared:users:");
+    const profiles = userKeys.map(k => lsGet(k)).filter(Boolean);
+
+    if(!profiles.length){
+      document.getElementById("friends-list").innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><p>No squad members yet.<br>Share this file with your friends so they can create accounts!</p></div>`;
+      return;
+    }
+
+    const histMap = {}, pbMap = {};
+    profiles.forEach(p => {
+      histMap[p.slug] = lsGet(`gs_shared:history:${p.slug}`) || [];
+      pbMap[p.slug]   = lsGet(`gs_shared:pbs:${p.slug}`) || {};
+    });
+
+    // Sort: you first, then by last workout date
+    const sorted = profiles.filter(Boolean).sort((a,b)=>{
+      if(a.slug===currentUser.slug)return -1;
+      if(b.slug===currentUser.slug)return 1;
+      const la=(histMap[a.slug]||[])[0]?.date||"";
+      const lb=(histMap[b.slug]||[])[0]?.date||"";
+      return lb.localeCompare(la);
+    });
+
+    if(!sorted.length){
+      document.getElementById("friends-list").innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><p>No squad members yet.<br>Share this app with your friends!</p></div>`;
+      return;
+    }
+
+    let html="";
+    sorted.forEach(p=>{
+      const isMe=p.slug===currentUser.slug;
+      const hist=histMap[p.slug]||[];
+      const pbs=pbMap[p.slug]||{};
+      const last=hist[0];
+      const streak=calcStreak(hist);
+      const totalVol=hist.slice(0,7).reduce((s,h)=>s+(h.stats?.vol||0),0);
+      const totalSets=hist.slice(0,7).reduce((s,h)=>s+(h.stats?.done||0),0);
+      const pbCount=Object.keys(pbs).length;
+      const recentPBs=last?.newPBs?.slice(0,2)||[];
+      html+=`<div class="friend-card">
+        <div class="friend-top">
+          <div class="friend-avatar">${p.avatar}</div>
+          <div class="friend-info">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div class="friend-name">${p.name}</div>
+              ${isMe?'<span class="you-badge">You</span>':""}
+            </div>
+            <div class="friend-streak">🔥 ${streak} day streak</div>
+            <div class="friend-last">${last?`Last: ${last.muscle} · ${fmtDate(last.date)}`:"No workouts yet"}</div>
+          </div>
+        </div>
+        <div class="friend-stats">
+          <div class="friend-stat"><div class="friend-stat-val">${totalSets}</div><div class="friend-stat-lbl">Sets (7d)</div></div>
+          <div class="friend-stat"><div class="friend-stat-val">${totalVol>=1000?(totalVol/1000).toFixed(1)+"k":totalVol}</div><div class="friend-stat-lbl">Vol lbs (7d)</div></div>
+          <div class="friend-stat"><div class="friend-stat-val">${pbCount}</div><div class="friend-stat-lbl">Total PBs</div></div>
+        </div>
+        ${recentPBs.length?`<div class="friend-pbs">${recentPBs.map(n=>`<span class="friend-pb-tag">🏆 ${n.length>22?n.slice(0,22)+"…":n}</span>`).join("")}</div>`:""}
+      </div>`;
+    });
+    document.getElementById("friends-list").innerHTML=html;
+  } catch(e){
+    document.getElementById("friends-list").innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><p>Could not load squad.<br>Check your connection.</p></div>`;
+  }
+}
+
+function calcStreak(hist){
+  const done=new Set((hist||[]).map(h=>new Date(h.date).toDateString()));
+  let s=0,d=new Date();
+  while(done.has(d.toDateString())){s++;d.setDate(d.getDate()-1);}
+  return s;
+}
+
+// ─── PERSONAL BESTS ────────────────────────────────────────────────────────
+function renderPBs(){
+  const list=document.getElementById("pb-list");
+  const entries=Object.entries(personalBests);
+  if(!entries.length){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">🏆</div><p>No records yet.<br>Complete workouts to set your first personal best.</p></div>`;
+    return;
+  }
+  const byMuscle={};
+  entries.forEach(([name,pb])=>{
+    let muscle="Other";
+    Object.values(WORKOUTS).forEach(w=>{if(w.exercises.find(e=>e.name===name))muscle=w.name;});
+    if(!byMuscle[muscle])byMuscle[muscle]=[];
+    byMuscle[muscle].push({name,pb});
+  });
+  let html="";
+  Object.entries(byMuscle).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([muscle,items])=>{
+    html+=`<div class="pb-section"><div class="pb-section-label">${muscle}</div>`;
+    items.sort((a,b)=>(b.pb.orm||0)-(a.pb.orm||0)).forEach(({name,pb})=>{
+      html+=`<div class="pb-card"><span class="pb-trophy">🥇</span>
+        <div class="pb-info"><div class="pb-name">${name}</div><div class="pb-date">${fmtDateLong(pb.date)}</div></div>
+        <div class="pb-nums">
+          <div class="pb-weight">${pb.weight} lbs</div>
+          <div class="pb-reps">${pb.reps} reps</div>
+          ${pb.orm?`<div class="pb-orm">~${pb.orm} 1RM</div>`:""}
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  list.innerHTML=html;
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),3200);
+}
+
+// ─── GO ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
